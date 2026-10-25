@@ -1,0 +1,44 @@
+<?php require 'music_dbconfig.php';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $pdo->prepare("INSERT INTO records (artist_id, title, price, release_year) VALUES (?,?,?,?)")
+      ->execute([$_POST['artist_id'], $_POST['title'], $_POST['price'], $_POST['release_year']]);
+  header("Location: records_index.php?artist_id=" . $_POST['artist_id']); exit;
+}
+$artists = $pdo->query("SELECT * FROM artists")->fetchAll(PDO::FETCH_ASSOC);
+$filter = $_GET['artist_id'] ?? null;
+$sql = "SELECT r.*, a.artist_name FROM records r JOIN artists a ON r.artist_id = a.artist_id";
+$stmt = $filter ? $pdo->prepare($sql . " WHERE r.artist_id=?") : $pdo->prepare($sql);
+$stmt->execute($filter ? [$filter] : []);
+$records = $stmt->fetchAll(PDO::FETCH_ASSOC);
+?>
+<h2>Records</h2>
+<a href="music_artist_index.php">← Back to Artists</a>
+<form method="post">
+  <select name="artist_id" required>
+    <?php foreach ($artists as $a): ?>
+      <option value="<?= $a['artist_id'] ?>" <?= $filter == $a['artist_id'] ? 'selected' : '' ?>>
+        <?= htmlspecialchars($a['artist_name']) ?>
+      </option>
+    <?php endforeach; ?>
+  </select>
+  <input name="title" placeholder="Record title" required>
+  <input name="price" type="number" step="0.01" placeholder="Price" required>
+  <input name="release_year" type="number" placeholder="Year">
+  <button>Add Record</button>
+</form>
+<table border="1" cellpadding="6">
+  <tr><th>ID</th><th>Artist</th><th>Title</th><th>Price</th><th>Year</th><th>Actions</th></tr>
+  <?php foreach ($records as $r): ?>
+  <tr>
+    <td><?= $r['record_id'] ?></td>
+    <td><?= htmlspecialchars($r['artist_name']) ?></td>
+    <td><?= htmlspecialchars($r['title']) ?></td>
+    <td><?= $r['price'] ?></td>
+    <td><?= $r['release_year'] ?></td>
+    <td>
+      <a href="records_edit.php?id=<?= $r['record_id'] ?>">Edit</a> |
+      <a href="records_delete.php?id=<?= $r['record_id'] ?>&artist_id=<?= $r['artist_id'] ?>" onclick="return confirm('Delete this record?')">Delete</a>
+    </td>
+  </tr>
+  <?php endforeach; ?>
+</table>

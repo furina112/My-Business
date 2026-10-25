@@ -1,0 +1,17 @@
+<?php require 'music_dbconfig.php';
+$id = $_GET['id'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $pdo->prepare("UPDATE artists SET artist_name=?, genre=? WHERE artist_id=?")
+      ->execute([$_POST['artist_name'], $_POST['genre'], $id]);
+  header("Location: music_artist_index.php"); exit;
+}
+$s = $pdo->prepare("SELECT * FROM artists WHERE artist_id=?");
+$s->execute([$id]);
+$a = $s->fetch(PDO::FETCH_ASSOC);
+?>
+<h2>Edit Artist</h2>
+<form method="post">
+  <input name="artist_name" value="<?= htmlspecialchars($a['artist_name']) ?>" required>
+  <input name="genre" value="<?= htmlspecialchars($a['genre']) ?>">
+  <button>Update</button>
+</form>

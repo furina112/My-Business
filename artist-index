@@ -1,0 +1,29 @@
+<?php require 'music_dbconfig.php';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $pdo->prepare("INSERT INTO artists (artist_name, genre) VALUES (?, ?)")
+      ->execute([$_POST['artist_name'], $_POST['genre']]);
+  header("Location: music_artist_index.php"); exit;
+}
+$artists = $pdo->query("SELECT * FROM artists")->fetchAll(PDO::FETCH_ASSOC);
+?>
+<h2>Artists</h2>
+<form method="post">
+  <input name="artist_name" placeholder="Artist name" required>
+  <input name="genre" placeholder="Genre">
+  <button>Add Artist</button>
+</form>
+<table border="1" cellpadding="6">
+  <tr><th>ID</th><th>Name</th><th>Genre</th><th>Actions</th></tr>
+  <?php foreach ($artists as $a): ?>
+  <tr>
+    <td><?= $a['artist_id'] ?></td>
+    <td><?= htmlspecialchars($a['artist_name']) ?></td>
+    <td><?= htmlspecialchars($a['genre']) ?></td>
+    <td>
+      <a href="records_index.php?artist_id=<?= $a['artist_id'] ?>">Records</a> |
+      <a href="music_artist_edit.php?id=<?= $a['artist_id'] ?>">Edit</a> |
+      <a href="music_artist_delete.php?id=<?= $a['artist_id'] ?>" onclick="return confirm('Delete artist and all their records?')">Delete</a>
+    </td>
+  </tr>
+  <?php endforeach; ?>
+</table>

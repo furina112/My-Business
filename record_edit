@@ -1,0 +1,19 @@
+<?php require 'music_dbconfig.php';
+$id = $_GET['id'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $pdo->prepare("UPDATE records SET title=?, price=?, release_year=? WHERE record_id=?")
+      ->execute([$_POST['title'], $_POST['price'], $_POST['release_year'], $id]);
+  header("Location: records_index.php?artist_id=" . $_POST['artist_id']); exit;
+}
+$s = $pdo->prepare("SELECT * FROM records WHERE record_id=?");
+$s->execute([$id]);
+$r = $s->fetch(PDO::FETCH_ASSOC);
+?>
+<h2>Edit Record</h2>
+<form method="post">
+  <input type="hidden" name="artist_id" value="<?= $r['artist_id'] ?>">
+  <input name="title" value="<?= htmlspecialchars($r['title']) ?>" required>
+  <input name="price" type="number" step="0.01" value="<?= $r['price'] ?>" required>
+  <input name="release_year" type="number" value="<?= $r['release_year'] ?>">
+  <button>Update</button>
+</form>
